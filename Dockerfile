@@ -1,12 +1,12 @@
 FROM tomcat:8.0-jre8
 # TODO: Update to 8.5, test
 ##
-LABEL "io.github.islandora-collaboration-group.name"="isle-fedora"
-LABEL "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data."
-LABEL "io.github.islandora-collaboration-group.license"="Apache-2.0"
-LABEL "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git"
-LABEL "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
-LABEL "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
+LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
+     "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
+     "io.github.islandora-collaboration-group.license"="Apache-2.0" \
+     "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git" \
+     "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
+     "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
 ##
 
 ###
