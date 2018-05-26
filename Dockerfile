@@ -1,4 +1,5 @@
 FROM tomcat:8.0-jre8
+# TODO: Update to 8.5, test
 ##
 LABEL "io.github.islandora-collaboration-group.name"="isle-fedora"
 LABEL "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data."
@@ -10,6 +11,7 @@ LABEL "io.github.islandora-collaboration-group.maintainer"="Islandora Collaborat
 
 ###
 # COPY over tomcat config files
+# TODO: rootfs
 COPY tomcat/server.xml /usr/local/tomcat/conf/server.xml
 COPY tomcat/web.xml /usr/local/tomcat/conf/web.xml
 COPY tomcat/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
@@ -60,8 +62,9 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     oracle-java8-set-default \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    touch /etc/cron.d/tmpreaper-cron && \
-    echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" /etc/cron.d/tmpreaper-cron && \
+    #touch /etc/cron.d/tmpreaper-cron && \
+    #echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" /etc/cron.d/tmpreaper-cron && \
+    echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
     chmod 0644 /etc/cron.d/tmpreaper-cron && \
     touch /var/log/cron.log
 
@@ -71,6 +74,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 #
 
 RUN cd /opt \
+# TODO: WORKDIR
     wget https://sourceforge.mirrorservice.org/d/dj/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz && \
     tar -xzf adore-djatoka-1.1.tar.gz && \
     ln -s /opt/adore-djatoka-1.1/bin/Linux-x86-64/kdu_compress /usr/local/bin/kdu_compress && \
@@ -99,6 +103,7 @@ COPY adore-djatoka/log4j.properties /usr/local/tomcat/webapps/adore-djatoka/WEB-
 COPY fedora/install.properties /usr/local/install.properties
 
 RUN cd /usr/local/ \
+# TODO: WORKDIR
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     /usr/bin/java -jar /usr/local/fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     /usr/local/tomcat/bin/startup.sh && \
