@@ -1,11 +1,11 @@
 FROM tomcat:8.0-jre8
 ##
-LABEL "io.github.islandora-collaboration-group.name"="isle-fedora"
-LABEL "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data."
-LABEL "io.github.islandora-collaboration-group.license"="Apache-2.0"
-LABEL "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git"
-LABEL "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
-LABEL "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
+LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
+     "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
+     "io.github.islandora-collaboration-group.license"="Apache-2.0" \
+     "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git" \
+     "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
+     "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
 ##
 
 ###
@@ -60,8 +60,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     oracle-java8-set-default \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    touch /etc/cron.d/tmpreaper-cron && \
-    echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" /etc/cron.d/tmpreaper-cron && \
+    echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
     chmod 0644 /etc/cron.d/tmpreaper-cron && \
     touch /var/log/cron.log
 
