@@ -8,11 +8,11 @@ LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
 ##
 
-###
+### deprecated by COPY rootfs /
 # COPY over tomcat config files
-COPY tomcat/server.xml /usr/local/tomcat/conf/server.xml
-COPY tomcat/web.xml /usr/local/tomcat/conf/web.xml
-COPY tomcat/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
+# COPY tomcat/server.xml /usr/local/tomcat/conf/server.xml
+# COPY tomcat/web.xml /usr/local/tomcat/conf/web.xml
+# COPY tomcat/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
 
 ###
 # Set up environmental variables for tomcat & dependencies installation
@@ -37,13 +37,13 @@ ENV JAVA_HOME=/usr/lib/jvm/java-8-oracle \
 
 ###
 # https://github.com/phusion/baseimage-docker/issues/58
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
-    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee /etc/apt/sources.list.d/webupd8team-java.list && \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+    echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | debconf-set-selections && \
+    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/webupd8team-java.list && \
     echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
     apt-get update && \
-    apt-get install -y software-properties-common && \
+    apt-get install -y software-properties-common \
     tmpreaper \
     mysql-client \
     python-mysqldb \
@@ -57,7 +57,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     openssl \
     libxml2-dev \
     oracle-java8-installer \
-    oracle-java8-set-default \
+    oracle-java8-set-default && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
@@ -69,7 +69,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 # Djatoka
 #
 
-RUN cd /opt \
+RUN cd /opt && \
     wget https://sourceforge.mirrorservice.org/d/dj/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz && \
     tar -xzf adore-djatoka-1.1.tar.gz && \
     ln -s /opt/adore-djatoka-1.1/bin/Linux-x86-64/kdu_compress /usr/local/bin/kdu_compress && \
@@ -89,6 +89,7 @@ RUN cd /opt \
     chown root:root /etc/ld.so.conf.d/kdu_libs.conf && \
     sed -i 's/localhost/fedora/g' /usr/local/tomcat/webapps/adore-djatoka/index.html
 
+# @TODO deprecate
 COPY adore-djatoka/envinit.sh /opt/adore-djatoka-1.1/bin/envinit.sh
 COPY adore-djatoka/log4j.properties /usr/local/tomcat/webapps/adore-djatoka/WEB-INF/classes/log4j.properties
 
@@ -97,15 +98,13 @@ COPY adore-djatoka/log4j.properties /usr/local/tomcat/webapps/adore-djatoka/WEB-
 
 COPY fedora/install.properties /usr/local/install.properties
 
-RUN cd /usr/local/ \
+RUN cd /usr/local/ && \
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     /usr/bin/java -jar /usr/local/fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     /usr/local/tomcat/bin/startup.sh && \
     sleep 70
 
-COPY fedora/deny-apim-if-not-localhost.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml
-
-RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora \
+RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-policy-management-if-not-administrator.xml && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-purge-datastream-if-active-or-inactive.xml && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-purge-object-if-active-or-inactive.xml && \
@@ -114,14 +113,16 @@ RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islan
     cd /usr/local/tomcat/webapps/fedora/WEB-INF/lib/ && \
     wget "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.9/fcrepo-drupalauthfilter-3.8.1.jar"
 
-COPY fedora/permit-apim-to-authenticated-user.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-apim-to-authenticated-user.xml
-COPY fedora/permit-getDatastream-unrestricted.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-getDatastream-unrestricted.xml
-COPY fedora/permit-getDatastreamHistory-unrestricted.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-getDatastreamHistory-unrestricted.xml
-COPY fedora/permit-upload-to-authenticated-user.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-upload-to-authenticated-user.xml
-COPY fedora/fedora-users.xml /usr/local/fedora/server/config/fedora-users.xml
-COPY fedora/logback.xml /usr/local/fedora/server/config/logback.xml
-COPY fedora/filter-drupal.xml /usr/local/fedora/server/config/filter-drupal.xml
-COPY fedora/jaas.conf /usr/local/fedora/server/config/jaas.conf
+# Deprecated by COPY rootfs /
+# COPY fedora/deny-apim-if-not-localhost.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml
+# COPY fedora/permit-apim-to-authenticated-user.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-apim-to-authenticated-user.xml
+# COPY fedora/permit-getDatastream-unrestricted.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-getDatastream-unrestricted.xml
+# COPY fedora/permit-getDatastreamHistory-unrestricted.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-getDatastreamHistory-unrestricted.xml
+# COPY fedora/permit-upload-to-authenticated-user.xml /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora/permit-upload-to-authenticated-user.xml
+# COPY fedora/fedora-users.xml /usr/local/fedora/server/config/fedora-users.xml
+# COPY fedora/logback.xml /usr/local/fedora/server/config/logback.xml
+# COPY fedora/filter-drupal.xml /usr/local/fedora/server/config/filter-drupal.xml
+# COPY fedora/jaas.conf /usr/local/fedora/server/config/jaas.conf
 
 
 ###
@@ -131,7 +132,7 @@ COPY fedora/jaas.conf /usr/local/fedora/server/config/jaas.conf
 #
 ###
 
-RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsearch/releases/download/v2.8.1/fedoragsearch-2.8.1.zip \
+RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsearch/releases/download/v2.8.1/fedoragsearch-2.8.1.zip && \
     /usr/bin/unzip -o /tmp/fedoragsearch-2.8.1.zip -d /tmp && \
     /bin/cp -v /tmp/fedoragsearch-2.8.1/fedoragsearch.war /usr/local/tomcat/webapps/ && \
     /usr/bin/unzip -o /usr/local/tomcat/webapps/fedoragsearch.war -d /usr/local/tomcat/webapps/fedoragsearch/ && \
@@ -139,13 +140,14 @@ RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsea
     rm -rf /tmp/gsearch && \
     rm -rf /tmp/fedoragsearch-2.8.1
 
-
+# Do not deprecated
 COPY gsearch/fgsconfig-basic-for-islandora.properties /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic-for-islandora.properties
 COPY gsearch/fgsconfig-basic.xml /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml
+# @TODO deprecate by COPY rootfs /
 COPY gsearch/log4j.xml /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/log4j.xml
 
 
-RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml \
+RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml && \
     cp -Rv /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/configForIslandora/fgsconfigFinal/. /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/ && \
     /usr/bin/git clone https://github.com/discoverygarden/dgi_gsearch_extensions.git /tmp/dgi_gsearch_extensions && \
     cd /tmp/dgi_gsearch_extensions && \
@@ -157,11 +159,12 @@ RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-
     rm -rf /tmp/dgi_gsearch_extensions && \
     rm -rf /tmp/islandora_transforms
 
+## Deprecated by COPY rootfs /
+# COPY gsearch/foxmlToSolr.xslt /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt
+# COPY gsearch/index.properties /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties
 
-COPY gsearch/foxmlToSolr.xslt /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt
-COPY gsearch/index.properties /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties
+COPY rootfs /
 
-# Docker volume this, please.
 VOLUME /usr/local/fedora/data
 
 EXPOSE 8080
