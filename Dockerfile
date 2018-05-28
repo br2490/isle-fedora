@@ -165,7 +165,6 @@ RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-
 
 COPY rootfs /
 
-# Docker volume this, please.
 VOLUME /usr/local/fedora/data
 
 EXPOSE 8080
