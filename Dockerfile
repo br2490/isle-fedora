@@ -37,13 +37,13 @@ ENV JAVA_HOME=/usr/lib/jvm/java-8-oracle \
 
 ###
 # https://github.com/phusion/baseimage-docker/issues/58
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
-    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee /etc/apt/sources.list.d/webupd8team-java.list && \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+    echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | debconf-set-selections && \
+    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/webupd8team-java.list && \
     echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
     apt-get update && \
-    apt-get install -y software-properties-common && \
+    apt-get install -y software-properties-common \
     tmpreaper \
     mysql-client \
     python-mysqldb \
@@ -57,7 +57,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     openssl \
     libxml2-dev \
     oracle-java8-installer \
-    oracle-java8-set-default \
+    oracle-java8-set-default && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
@@ -69,7 +69,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 # Djatoka
 #
 
-RUN cd /opt \
+RUN cd /opt && \
     wget https://sourceforge.mirrorservice.org/d/dj/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz && \
     tar -xzf adore-djatoka-1.1.tar.gz && \
     ln -s /opt/adore-djatoka-1.1/bin/Linux-x86-64/kdu_compress /usr/local/bin/kdu_compress && \
@@ -98,13 +98,13 @@ COPY adore-djatoka/log4j.properties /usr/local/tomcat/webapps/adore-djatoka/WEB-
 
 COPY fedora/install.properties /usr/local/install.properties
 
-RUN cd /usr/local/ \
+RUN cd /usr/local/ && \
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     /usr/bin/java -jar /usr/local/fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     /usr/local/tomcat/bin/startup.sh && \
     sleep 70
 
-RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora \
+RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-policy-management-if-not-administrator.xml && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-purge-datastream-if-active-or-inactive.xml && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-purge-object-if-active-or-inactive.xml && \
@@ -132,7 +132,7 @@ RUN mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islan
 #
 ###
 
-RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsearch/releases/download/v2.8.1/fedoragsearch-2.8.1.zip \
+RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsearch/releases/download/v2.8.1/fedoragsearch-2.8.1.zip && \
     /usr/bin/unzip -o /tmp/fedoragsearch-2.8.1.zip -d /tmp && \
     /bin/cp -v /tmp/fedoragsearch-2.8.1/fedoragsearch.war /usr/local/tomcat/webapps/ && \
     /usr/bin/unzip -o /usr/local/tomcat/webapps/fedoragsearch.war -d /usr/local/tomcat/webapps/fedoragsearch/ && \
@@ -147,7 +147,7 @@ COPY gsearch/fgsconfig-basic.xml /usr/local/tomcat/webapps/fedoragsearch/FgsConf
 COPY gsearch/log4j.xml /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/log4j.xml
 
 
-RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml \
+RUN /usr/bin/ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml && \
     cp -Rv /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/configForIslandora/fgsconfigFinal/. /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/ && \
     /usr/bin/git clone https://github.com/discoverygarden/dgi_gsearch_extensions.git /tmp/dgi_gsearch_extensions && \
     cd /tmp/dgi_gsearch_extensions && \
