@@ -1,4 +1,4 @@
-FROM tomcat:8.0-jre8
+FROM isle-tomcat:alpha
 
 LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
@@ -11,47 +11,32 @@ LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
 COPY install_properties/ /
 
 # Set up environmental variables for tomcat & dependencies installation
-ENV JAVA_HOME=/usr/lib/jvm/java-8-oracle \
-     CATALINA_HOME=/usr/local/tomcat \
-     CATALINA_BASE=/usr/local/tomcat \
-     KAKADU_HOME=/opt/adore-djatoka-1.1/bin/Linux-x86-64 \
-     CLASSPATH=$JAVA_HOME/jre/lib \
+ENV KAKADU_HOME=/opt/adore-djatoka-1.1/bin/Linux-x86-64 \
      FEDORA_HOME=/usr/local/fedora \
-     JRE_HOME=/usr/lib/jvm/java-8-oracle/jre \
-     JAVA_OPTS="-Djava.awt.headless=true -Xmx1024m -XX:MaxPermSize=256m -XX:+UseConcMarkSweepGC -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64" \
-     JRE_PATH=$PATH:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/jre/bin \
      FEDORA_PATH="$PATH:$FEDORA_HOME/server/bin:$FEDORA_HOME/client/bin" \
      KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
      KAKADU_HOME=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
      LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CATALINA_HOME/lib \
      PATH=$PATH:$FEDORA_HOME/server/bin:$FEDORA_HOME/client/bin \
-     PATH=$PATH:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/jre/bin \
-     CATALINA_OPTS="-Djava.net.preferIPv4Stack=true -Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64" \
-     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CATALINA_HOME/lib
+     CATALINA_OPTS="-Djava.net.preferIPv4Stack=true -Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64"
 
 ###
 # https://github.com/phusion/baseimage-docker/issues/58
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
-    echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | debconf-set-selections && \
-    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/webupd8team-java.list && \
-    echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
     apt-get update && \
-    apt-get install -y software-properties-common \
+    apt-get install -y cron \
+    software-properties-common \
     tmpreaper \
     mysql-client \
     python-mysqldb \
     default-libmysqlclient-dev \
     maven \
     git \
-    curl \
     dnsutils \
     ca-certificates \
     apt-transport-https \
     openssl \
-    libxml2-dev \
-    oracle-java8-installer \
-    oracle-java8-set-default && \
+    libxml2-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
@@ -94,7 +79,7 @@ RUN cd /usr/local/ && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-purge-object-if-active-or-inactive.xml && \
     rm /usr/local/fcrepo-installer-3.8.1.jar && \
     cd /usr/local/tomcat/webapps/fedora/WEB-INF/lib/ && \
-    wget "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.9/fcrepo-drupalauthfilter-3.8.1.jar" && \
+    wget "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.9/fcrepo-drupalauthfilter-3.8.1.jar"
 
 ###
 # Gsearch
