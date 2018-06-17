@@ -1,4 +1,4 @@
-FROM isle-tomcat:alpha
+FROM isle-tomcat:latest
 
 LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
@@ -21,22 +21,20 @@ ENV KAKADU_HOME=/opt/adore-djatoka-1.1/bin/Linux-x86-64 \
      CATALINA_OPTS="-Djava.net.preferIPv4Stack=true -Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64"
 
 ###
-# https://github.com/phusion/baseimage-docker/issues/58
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
-    apt-get update && \
-    apt-get install -y cron \
-    software-properties-common \
+# Dependencies 
+RUN GEN_DEP_PACKS="cron \
     tmpreaper \
     mysql-client \
     python-mysqldb \
     default-libmysqlclient-dev \
     maven \
-    git \
     dnsutils \
     ca-certificates \
-    apt-transport-https \
     openssl \
-    libxml2-dev && \
+    libxml2-dev" && \
+	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+    apt-get update && \
+    apt-get install -y $GEN_DEP_PACKS && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     echo "0 */12 * * * root /usr/sbin/tmpreaper -am 4d /tmp >> /var/log/cron.log 2>&1" | tee /etc/cron.d/tmpreaper-cron && \
@@ -71,7 +69,7 @@ RUN cd /usr/local/ && \
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     /usr/bin/java -jar /usr/local/fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     /usr/local/tomcat/bin/startup.sh && \
-    sleep 30 && \
+    sleep 45 && \
     rm /usr/local/install.properties && \
     mkdir /usr/local/fedora/data/fedora-xacml-policies/repository-policies/islandora && \
     rm /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default/deny-policy-management-if-not-administrator.xml && \
