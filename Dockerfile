@@ -1,4 +1,4 @@
-FROM isle-tomcat:latest
+FROM benjaminrosner/isle-tomcat:latest
 
 LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
