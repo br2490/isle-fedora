@@ -11,11 +11,10 @@ LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
 COPY install_properties/ /
 
 # Set up environmental variables for tomcat & dependencies installation
-ENV KAKADU_HOME=/opt/adore-djatoka-1.1/bin/Linux-x86-64 \
-     FEDORA_HOME=/usr/local/fedora \
+ENV FEDORA_HOME=/usr/local/fedora \
      FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
      KAKADU_HOME=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
+     KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
      PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
      CATALINA_OPTS="-Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64"
 
