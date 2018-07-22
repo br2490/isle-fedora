@@ -29,7 +29,7 @@ RUN GEN_DEP_PACKS="mysql-client \
     ca-certificates \
     openssl \
     libxml2-dev" && \
-	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get install -y --no-install-recommends $GEN_DEP_PACKS && \
     ## Cleanup phase.
@@ -140,4 +140,6 @@ COPY rootfs /
 VOLUME /usr/local/fedora/data
 
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+
+ENTRYPOINT ["/init"]
+# CMD ["catalina.sh", "run"]
