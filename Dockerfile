@@ -1,4 +1,4 @@
-FROM benjaminrosner/isle-tomcat:refactor
+FROM benjaminrosner/isle-tomcat:preRC
 
 LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
@@ -6,17 +6,6 @@ LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
      "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git" \
      "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
      "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
-
-# Copy installation configuration files first, please.
-COPY install_properties/ /
-
-# Set up environmental variables for tomcat & dependencies installation
-ENV FEDORA_HOME=/usr/local/fedora \
-     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     KAKADU_HOME=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
-     KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
-     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     CATALINA_OPTS="-Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64 -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64"
 
 ###
 # Dependencies 
@@ -26,7 +15,6 @@ RUN GEN_DEP_PACKS="mysql-client \
     maven \
     ant \
     git \
-    ca-certificates \
     openssl \
     libxml2-dev" && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
@@ -35,6 +23,17 @@ RUN GEN_DEP_PACKS="mysql-client \
     ## Cleanup phase.
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Copy installation configuration files.
+COPY install_properties/ /
+
+# Set up environmental variables for tomcat & dependencies installation
+ENV FEDORA_HOME=/usr/local/fedora \
+     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
+     KAKADU_HOME=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
+     KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
+     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
+     CATALINA_OPTS="-Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64:/usr/local/tomcat/lib -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64:/usr/local/tomcat/lib"
 
 ###
 # Djatoka
@@ -49,12 +48,10 @@ RUN cd /opt && \
     cp /opt/adore-djatoka-1.1/dist/adore-djatoka.war /usr/local/tomcat/webapps/adore-djatoka.war && \
     unzip -o /usr/local/tomcat/webapps/adore-djatoka.war -d /usr/local/tomcat/webapps/adore-djatoka/ && \
     rm adore-djatoka-1.1.tar.gz && \
-    sed -i 's/DJATOKA_HOME=`pwd`/DJATOKA_HOME=\/opt\/adore-djatoka-1.1/g' /opt/adore-djatoka-1.1/bin/env.sh && \
+    rm /opt/adore-djatoka-1.1/bin/*.bat && \
+    sed -i 's#DJATOKA_HOME=`pwd`#DJATOKA_HOME=/opt/adore-djatoka-1.1#g' /opt/adore-djatoka-1.1/bin/env.sh && \
     sed -i 's|`uname -p` = "x86_64"|`uname -m` = "x86_64"|' /opt/adore-djatoka-1.1/bin/env.sh && \
-    touch /etc/ld.so.conf.d/kdu_libs.conf && \
     echo "/opt/adore-djatoka-1.1/lib/Linux-x86-64" > /etc/ld.so.conf.d/kdu_libs.conf && \
-    chmod 444 /etc/ld.so.conf.d/kdu_libs.conf && \
-    chown root:root /etc/ld.so.conf.d/kdu_libs.conf && \
     ldconfig && \
     sed -i 's/localhost/isle.localdomain/g' /usr/local/tomcat/webapps/adore-djatoka/index.html
 
@@ -112,29 +109,6 @@ RUN mkdir /tmp/fedoragsearch && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo*
 
-# ###
-# # Gsearch
-# #
-# # Removing log4j-over-slf4j-1.5.10.jar allows gsearch to startup properly.
-# RUN wget -O /tmp/fedoragsearch-2.8.1.zip https://github.com/discoverygarden/gsearch/releases/download/v2.8.1/fedoragsearch-2.8.1.zip && \
-#     unzip -o /tmp/fedoragsearch-2.8.1.zip -d /tmp && \
-#     cp -v /tmp/fedoragsearch-2.8.1/fedoragsearch.war /usr/local/tomcat/webapps/ && \
-#     unzip -o /usr/local/tomcat/webapps/fedoragsearch.war -d /usr/local/tomcat/webapps/fedoragsearch/ && \
-#     rm -f /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/lib/log4j-over-slf4j-1.5.10.jar && \
-#     rm -rf /tmp/gsearch && \
-#     rm -rf /tmp/fedoragsearch-2.8.1 && \
-#     ant -f /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/fgsconfig-basic-ISLE.xml && \
-#     cp -Rv /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/configForIslandora/fgsconfigFinal/. /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/ && \
-#     git clone https://github.com/discoverygarden/dgi_gsearch_extensions.git /tmp/dgi_gsearch_extensions && \
-#     cd /tmp/dgi_gsearch_extensions && \
-#     mvn -q package && \
-#     /bin/cp /tmp/dgi_gsearch_extensions/target/gsearch_extensions-0.1.3-jar-with-dependencies.jar /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/lib/gsearch_extensions-0.1.3-jar-with-dependencies.jar && \
-#     git clone -b master https://github.com/discoverygarden/islandora_transforms.git /tmp/islandora_transforms && \
-#     sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/islandora_transforms/*.xslt && \
-#     cp -Rv /tmp/islandora_transforms /usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
-#     rm -rf /tmp/dgi_gsearch_extensions && \
-#     rm -rf /tmp/islandora_transforms
-
 COPY rootfs /
 
 VOLUME /usr/local/fedora/data
@@ -142,4 +116,3 @@ VOLUME /usr/local/fedora/data
 EXPOSE 8080
 
 ENTRYPOINT ["/init"]
-# CMD ["catalina.sh", "run"]
