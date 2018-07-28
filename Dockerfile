@@ -57,7 +57,7 @@ RUN cd /opt && \
 
 ###
 # Fedora Installation with Drupalfilter
-RUN mkdir -p /tmp/fedora &&\
+RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     cd /tmp/fedora && \
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     java -jar fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
@@ -89,23 +89,31 @@ RUN mkdir -p /tmp/fedora &&\
 # Place `all the things` in /tmp during install phase: remove cleanup phase to inspect.
 RUN mkdir /tmp/fedoragsearch && \
     cd /tmp/fedoragsearch && \
-    git clone https://github.com/discoverygarden/dgi_gsearch_extensions.git && \
-    cd dgi_gsearch_extensions && \
-    mvn -q package && \
-    cd /tmp/fedoragsearch && \
     git clone https://github.com/discoverygarden/gsearch.git && \
-    cd gsearch/FedoraGenericSearch && \
+    git clone https://github.com/discoverygarden/dgi_gsearch_extensions.git && \
+    cd /tmp/fedoragsearch/gsearch/FedoraGenericSearch && \
     ant buildfromsource && \
-    git clone -b master https://github.com/discoverygarden/islandora_transforms.git /tmp/islandora_transforms && \
-    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/islandora_transforms/*.xslt && \
-    ## Copy files to their home.
+    cd /tmp/fedoragsearch/dgi_gsearch_extensions && \
+    mvn -q package && \
+    ## Copy FGS and Extensions to their respective locations and deploy
     cp -v /tmp/fedoragsearch/gsearch/FgsBuild/fromsource/fedoragsearch.war $CATALINA_HOME/webapps && \
     unzip -o $CATALINA_HOME/webapps/fedoragsearch.war -d $CATALINA_HOME/webapps/fedoragsearch/ && \
-    cp -v /tmp/fedoragsearch/dgi_gsearch_extensions/target/gsearch_extensions-0.1.*-jar-with-dependencies.jar $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib && \
+    cp -v /tmp/fedoragsearch/dgi_gsearch_extensions/target/gsearch_extensions-0.1.*-jar-with-dependencies.jar $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib
+
+    ## Configuration time. Why in another layer? caching during development. this is the part that gives headaches sometimes :)
+RUN cd /tmp && \
+    git clone --recursive -b 4.10.x https://github.com/discoverygarden/basic-solr-config.git && \
+    sed -i "s#localhost:8080#solr:8080#g" /tmp/basic-solr-config/index.properties&& \
+    sed -i "s#/usr/local/fedora/solr/collection1/data/index#NOT_USED#g" /tmp/basic-solr-config/index.properties&& \
+    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/foxmlToSolr.xslt && \
+    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/islandora_transforms/*.xslt && \
     cd $CATALINA_HOME/webapps/fedoragsearch/FgsConfig && \
-    ant -f fgsconfig-basic-ISLE.xml && \
-    cp -Rv /usr/local/tomcat/webapps/fedoragsearch/FgsConfig/configForIslandora/fgsconfigFinal/. $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/ && \
-    cp -Rv /tmp/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
+    ## @TODO: ENV ALL OF THIS vvv
+    ant -f fgsconfig-basic.xml -Dlocal.FEDORA_HOME=$FEDORA_HOME -DgsearchUser=fgsAdmin -DgsearchPass=ild_fgs_admin_2018 -DfinalConfigPath=$CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes -DlogFilePath=$FEDORA_HOME/logs -DfedoraUser=fedoraAdmin -DfedoraPass=ild_fed_admin_2018 -DobjectStoreBase=$FEDORA_HOME/data/objectStore -DindexDir=NOT_USED -DindexingDocXslt=foxmlToSolr -DlogLevel=DEBUG -propertyfile fgsconfig-basic-for-islandora.properties && \
+    ## END @TODO ^^^
+    cp -vr /tmp/basic-solr-config/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
+    cp -v /tmp/basic-solr-config/foxmlToSolr.xslt $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt && \
+    cp -v /tmp/basic-solr-config/index.properties $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo*
 
