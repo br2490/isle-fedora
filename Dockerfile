@@ -1,11 +1,17 @@
-FROM benjaminrosner/isle-tomcat:preRC
+FROM benjaminrosner/isle-tomcat:latest
 
-LABEL "io.github.islandora-collaboration-group.name"="isle-fedora" \
-     "io.github.islandora-collaboration-group.description"="ISLE Fedora container, responsible for storing and serving archival repository data." \
-     "io.github.islandora-collaboration-group.license"="Apache-2.0" \
-     "io.github.islandora-collaboration-group.vcs-url"="git@github.com:Islandora-Collaboration-Group/ISLE.git" \
-     "io.github.islandora-collaboration-group.vendor"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
-     "io.github.islandora-collaboration-group.maintainer"="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com"
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date="2018-08-05T17:13:02Z" \
+      org.label-schema.name="ISLE Fedora Services" \
+      org.label-schema.description="ISLE Fedora image, responsible for storing and serving archival repository data." \
+      org.label-schema.url="https://islandora-collaboration-group.github.io" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/Islandora-Collaboration-Group/isle-fedora" \
+      org.label-schema.vendor="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
+      org.label-schema.version="RC-20180805T171302Z" \
+      org.label-schema.schema-version="1.0"
 
 ###
 # Dependencies 
@@ -14,7 +20,6 @@ RUN GEN_DEP_PACKS="mysql-client \
     default-libmysqlclient-dev \
     maven \
     ant \
-    git \
     openssl \
     libxml2-dev" && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
@@ -30,30 +35,7 @@ COPY install_properties/ /
 # Set up environmental variables for tomcat & dependencies installation
 ENV FEDORA_HOME=/usr/local/fedora \
      FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     KAKADU_HOME=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
-     KAKADU_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64 \
-     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     CATALINA_OPTS="-Dkakadu.home=/opt/adore-djatoka-1.1/bin/Linux-x86-64 -Djava.library.path=/opt/adore-djatoka-1.1/lib/Linux-x86-64:/usr/local/tomcat/lib -DLD_LIBRARY_PATH=/opt/adore-djatoka-1.1/lib/Linux-x86-64:/usr/local/tomcat/lib"
-
-###
-# Djatoka
-RUN cd /opt && \
-    wget https://sourceforge.mirrorservice.org/d/dj/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz && \
-    tar -xzf adore-djatoka-1.1.tar.gz && \
-    ln -s /opt/adore-djatoka-1.1/bin/Linux-x86-64/kdu_compress /usr/local/bin/kdu_compress && \
-    ln -s /opt/adore-djatoka-1.1/bin/Linux-x86-64/kdu_expand /usr/local/bin/kdu_expand && \
-    ln -s /opt/adore-djatoka-1.1/lib/Linux-x86-64/libkdu_a60R.so /usr/local/lib/libkdu_a60R.so && \
-    ln -s /opt/adore-djatoka-1.1/lib/Linux-x86-64/libkdu_jni.so /usr/local/lib/libkdu_jni.so && \
-    ln -s /opt/adore-djatoka-1.1/lib/Linux-x86-64/libkdu_v60R.so /usr/local/lib/libkdu_v60R.so && \
-    cp /opt/adore-djatoka-1.1/dist/adore-djatoka.war /usr/local/tomcat/webapps/adore-djatoka.war && \
-    unzip -o /usr/local/tomcat/webapps/adore-djatoka.war -d /usr/local/tomcat/webapps/adore-djatoka/ && \
-    rm adore-djatoka-1.1.tar.gz && \
-    rm /opt/adore-djatoka-1.1/bin/*.bat && \
-    sed -i 's#DJATOKA_HOME=`pwd`#DJATOKA_HOME=/opt/adore-djatoka-1.1#g' /opt/adore-djatoka-1.1/bin/env.sh && \
-    sed -i 's|`uname -p` = "x86_64"|`uname -m` = "x86_64"|' /opt/adore-djatoka-1.1/bin/env.sh && \
-    echo "/opt/adore-djatoka-1.1/lib/Linux-x86-64" > /etc/ld.so.conf.d/kdu_libs.conf && \
-    ldconfig && \
-    sed -i 's/localhost/isle.localdomain/g' /usr/local/tomcat/webapps/adore-djatoka/index.html
+     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin
 
 ###
 # Fedora Installation with Drupalfilter
