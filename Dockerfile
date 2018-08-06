@@ -44,7 +44,7 @@ RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     java -jar fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     $CATALINA_HOME/bin/startup.sh && \
-    sleep 45 && \
+    sleep 60 && \
     rm /usr/local/install.properties && \
     # Setup XACML Policies
     cd $FEDORA_HOME/data/fedora-xacml-policies/repository-policies && \
