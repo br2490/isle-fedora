@@ -33,6 +33,8 @@
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">fedora</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">apache</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">mysql</AttributeValue>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">isle-images</AttributeValue>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">image-services</AttributeValue>
           </Apply>
         </Apply>
         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:regexp-string-match">
