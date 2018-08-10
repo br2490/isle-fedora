@@ -3,15 +3,18 @@ FROM benjaminrosner/isle-tomcat:latest
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
-LABEL org.label-schema.build-date="2018-08-05T17:13:02Z" \
+LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="ISLE Fedora Services" \
       org.label-schema.description="ISLE Fedora image, responsible for storing and serving archival repository data." \
       org.label-schema.url="https://islandora-collaboration-group.github.io" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/Islandora-Collaboration-Group/isle-fedora" \
       org.label-schema.vendor="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
-      org.label-schema.version="RC-20180805T171302Z" \
-      org.label-schema.schema-version="1.0"
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0" \
+      traefik.enable="true" \
+      traefik.port="8080" \
+      traefik.backend="isle-fedora"
 
 ###
 # Dependencies 
@@ -80,7 +83,9 @@ RUN mkdir /tmp/fedoragsearch && \
     ## Copy FGS and Extensions to their respective locations and deploy
     cp -v /tmp/fedoragsearch/gsearch/FgsBuild/fromsource/fedoragsearch.war $CATALINA_HOME/webapps && \
     unzip -o $CATALINA_HOME/webapps/fedoragsearch.war -d $CATALINA_HOME/webapps/fedoragsearch/ && \
-    cp -v /tmp/fedoragsearch/dgi_gsearch_extensions/target/gsearch_extensions-0.1.*-jar-with-dependencies.jar $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib
+    cp -v /tmp/fedoragsearch/dgi_gsearch_extensions/target/gsearch_extensions-0.1.*-jar-with-dependencies.jar $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib && \
+    ## Cleanup phase.
+    rm -rf /tmp/* /var/tmp/*
 
     ## Configuration time. Why in another layer? caching during development. this is the part that gives headaches sometimes :)
 RUN cd /tmp && \
