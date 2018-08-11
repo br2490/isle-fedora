@@ -30,11 +30,19 @@
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">127.0.0.1</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">::1</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">0:0:0:0:0:0:0:1</AttributeValue>
+          </Apply>
+        </Apply>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+          <EnvironmentAttributeDesignator AttributeId="urn:fedora:names:fedora:2.1:environment:httpRequest:clientFqdn" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">localhost</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">fedora</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">apache</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">mysql</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">isle-images</AttributeValue>
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">image-services</AttributeValue>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">isle.localdomain</AttributeValue>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">images.isle.localdomain</AttributeValue>
           </Apply>
         </Apply>
         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:regexp-string-match">
