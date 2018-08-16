@@ -84,6 +84,7 @@ RUN mkdir /tmp/fedoragsearch && \
     cp -v /tmp/fedoragsearch/gsearch/FgsBuild/fromsource/fedoragsearch.war $CATALINA_HOME/webapps && \
     unzip -o $CATALINA_HOME/webapps/fedoragsearch.war -d $CATALINA_HOME/webapps/fedoragsearch/ && \
     cp -v /tmp/fedoragsearch/dgi_gsearch_extensions/target/gsearch_extensions-0.1.*-jar-with-dependencies.jar $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib && \
+    rm $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/lib/log4j-over-slf4j-1.5.10.jar && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/*
 
