@@ -1,4 +1,4 @@
-FROM benjaminrosner/isle-tomcat:latest
+FROM benjaminrosner/isle-tomcat:serverjre8
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -37,8 +37,8 @@ COPY install_properties/ /
 
 # Set up environmental variables for tomcat & dependencies installation
 ENV FEDORA_HOME=/usr/local/fedora \
-     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin
+    FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
+    PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin
 
 ###
 # Fedora Installation with Drupalfilter
