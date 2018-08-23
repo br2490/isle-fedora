@@ -3,6 +3,9 @@ FROM benjaminrosner/isle-tomcat:serverjre8
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
+ARG MAVEN_MAJOR
+ARG MAVEN_VERSION
+ARG ANT_VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="ISLE Fedora Services" \
       org.label-schema.description="ISLE Fedora image, responsible for storing and serving archival repository data." \
@@ -21,8 +24,6 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 RUN GEN_DEP_PACKS="mysql-client \
     python-mysqldb \
     default-libmysqlclient-dev \
-    maven \
-    ant \
     openssl \
     libxml2-dev" && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
@@ -38,7 +39,23 @@ COPY install_properties/ /
 # Set up environmental variables for tomcat & dependencies installation
 ENV FEDORA_HOME=/usr/local/fedora \
     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
-    PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin
+    PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin:/opt/maven/bin:/opt/ant/bin \
+    MAVEN_HOME=/opt/maven \
+    ANT_HOME=/opt/ant \
+    MAVEN_MAJOR=${MAVEN_MAJOR:-3} \
+    MAVEN_VERSION=${MAVEN_VERSION:-3.5.4} \
+    ANT_VERSION=${ANT_VERSION:-1.10.5}
+
+## ANT AND MAVEN
+RUN cd /tmp && \
+    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=maven/maven-$MAVEN_MAJOR/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" && \
+    tar xzf /tmp/apache-maven-$MAVEN_VERSION-bin.tar.gz -C $MAVEN_HOME --strip-components=1 && \
+    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=ant/binaries/apache-ant-$ANT_VERSION-bin.tar.gz" && \
+    tar xzf /tmp/apache-ant-$ANT_VERSION-bin.tar.gz -C $ANT_HOME --strip-components=1 && \
+    cd $ANT_HOME && \
+    ant -f fetch.xml -Ddest=system && \
+    ## Cleanup phase.
+    rm -rf /tmp/* /var/tmp/* $ANT_HOME/bin/*.bat 
 
 ###
 # Fedora Installation with Drupalfilter
