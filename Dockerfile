@@ -19,8 +19,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       traefik.port="8080" \
       traefik.backend="isle-fedora"
 
-###
-# Dependencies 
+## Dependencies 
 RUN GEN_DEP_PACKS="mysql-client \
     python-mysqldb \
     default-libmysqlclient-dev \
@@ -33,10 +32,7 @@ RUN GEN_DEP_PACKS="mysql-client \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy installation configuration files.
-COPY install_properties/ /
-
-# Set up environmental variables for tomcat & dependencies installation
+## Set up environmental variables for tomcat & dependencies installation
 ENV FEDORA_HOME=/usr/local/fedora \
     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin:/opt/maven/bin:/opt/ant/bin \
@@ -47,7 +43,8 @@ ENV FEDORA_HOME=/usr/local/fedora \
     ANT_VERSION=${ANT_VERSION:-1.10.5}
 
 ## ANT AND MAVEN
-RUN cd /tmp && \
+RUN mkdir -p $ANT_HOME $MAVEN_HOME && \
+    cd /tmp && \
     curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=maven/maven-$MAVEN_MAJOR/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" && \
     tar xzf /tmp/apache-maven-$MAVEN_VERSION-bin.tar.gz -C $MAVEN_HOME --strip-components=1 && \
     curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=ant/binaries/apache-ant-$ANT_VERSION-bin.tar.gz" && \
@@ -57,8 +54,10 @@ RUN cd /tmp && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/* $ANT_HOME/bin/*.bat 
 
-###
-# Fedora Installation with Drupalfilter
+## Copy installation configuration files.
+COPY install_properties/ /
+
+## Fedora Installation with Drupalfilter
 RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     cd /tmp/fedora && \
     wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
@@ -88,7 +87,7 @@ RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
 ###
 # Fedora GSearch
 # DGI GSearch extensions
-# Place `all the things` in /tmp during install phase: remove cleanup phase to inspect.
+##
 RUN mkdir /tmp/fedoragsearch && \
     cd /tmp/fedoragsearch && \
     git clone https://github.com/discoverygarden/gsearch.git && \
@@ -105,7 +104,7 @@ RUN mkdir /tmp/fedoragsearch && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/*
 
-    ## Configuration time. Why in another layer? caching during development. this is the part that gives headaches sometimes :)
+    ## Configuration time. Why in another layer? caching during development.
 RUN cd /tmp && \
     git clone --recursive -b 4.10.x https://github.com/discoverygarden/basic-solr-config.git && \
     sed -i "s#localhost:8080#solr:8080#g" /tmp/basic-solr-config/index.properties&& \

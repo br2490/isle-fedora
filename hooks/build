@@ -12,4 +12,7 @@ docker build \
 	--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 	--build-arg VCS_REF=$SOURCE_COMMIT \
 	--build-arg VERSION=RC-`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+	--build-arg MAVEN_MAJOR=3 \
+	--build-arg MAVEN_VERSION=3.5.4 \
+	--build-arg ANT_VERSION=1.10.5 \
 	-t $IMAGE_NAME .
