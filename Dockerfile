@@ -15,9 +15,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vendor="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0" \
-      traefik.enable="true" \
-      traefik.port="8080" \
-      traefik.backend="isle-fedora"
+      traefik.port="8080"
 
 ## Dependencies 
 RUN GEN_DEP_PACKS="mysql-client \
@@ -33,7 +31,11 @@ RUN GEN_DEP_PACKS="mysql-client \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## Set up environmental variables for tomcat & dependencies installation
-ENV FEDORA_HOME=/usr/local/fedora \
+ENV JAVA_MAX_MEM=${JAVA_MAX_MEM:-2G} \
+    JAVA_MIN_MEM=${JAVA_MIN_MEM:-512M} \
+    ## Per Gavin, we are no longer using -XX:+UseConcMarkSweepGC, instead G1GC.
+    JAVA_OPTS='-Djava.awt.headless=true -server -Xmx${JAVA_MAX_MEM} -Xms${JAVA_MIN_MEM} -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=70 -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true' \
+    FEDORA_HOME=/usr/local/fedora \
     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin:/opt/maven/bin:/opt/ant/bin \
     MAVEN_HOME=/opt/maven \
@@ -60,7 +62,7 @@ COPY install_properties/ /
 ## Fedora Installation with Drupalfilter
 RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     cd /tmp/fedora && \
-    wget "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
+    curl -O -L "https://github.com/fcrepo3/fcrepo/releases/download/v3.8.1/fcrepo-installer-3.8.1.jar" && \
     java -jar fcrepo-installer-3.8.1.jar /usr/local/install.properties && \
     $CATALINA_HOME/bin/startup.sh && \
     ## Docker Hub Auto-builds need some time.
@@ -81,7 +83,7 @@ RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     rm permit-upload-to-anonymous-user.xml && \
     # Drupal Filter
     cd $CATALINA_HOME/webapps/fedora/WEB-INF/lib/ && \
-    wget "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.9/fcrepo-drupalauthfilter-3.8.1.jar" && \
+    curl -O -L "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.9/fcrepo-drupalauthfilter-3.8.1.jar" && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/*
 
