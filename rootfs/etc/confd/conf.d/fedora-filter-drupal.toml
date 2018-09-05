@@ -1,0 +1,11 @@
+[template]
+src = "fedora/filter-drupal.xml.tpl"
+dest = "/usr/local/fedora/server/config/filter-drupal.xml"
+uid = 1000
+gid = 1000
+mode = "0740"
+keys = [
+  "/drupal/db",
+  "/drupal/db/user",
+  "/drupal/db/pass"
+]

@@ -1,0 +1,10 @@
+[template]
+src = "gsearch/fedoragsearch.properties.tpl"
+dest = "/usr/local/tomcat/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/fedoragsearch.properties"
+uid = 1000
+gid = 1000
+mode = "0740"
+keys = [
+  "/fedora/gsearch/user",
+  "/fedora/gsearch/pass",
+]

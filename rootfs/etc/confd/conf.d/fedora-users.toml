@@ -1,0 +1,14 @@
+[template]
+src = "fedora/fedora-users.xml.tpl"
+dest = "/usr/local/fedora/server/config/fedora-users.xml"
+uid = 1000
+gid = 1000
+mode = "0740"
+keys = [
+  "/fedora/admin/user",
+  "/fedora/admin/pass",
+  "/fedora/gsearch/user",
+  "/fedora/gsearch/pass",
+  "/fedora/intcall/user",
+  "/fedora/intcall/pass"
+]

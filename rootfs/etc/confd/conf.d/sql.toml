@@ -1,0 +1,12 @@
+[template]
+src = "sql/fedora.sql.tpl"
+dest = "/tmp/fedora.sql"
+uid = 0
+gid = 0
+mode = "0644"
+keys = [
+  "/fedora/db",
+  "/fedora/db/user",
+  "/fedora/db/pass",
+]
+reload_cmd="mysql -h mysql -uroot -p${MYSQL_ROOT_PASSWORD} < /tmp/fedora.sql"
