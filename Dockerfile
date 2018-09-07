@@ -115,9 +115,7 @@ RUN cd /tmp && \
     sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/foxmlToSolr.xslt && \
     sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/islandora_transforms/*.xslt && \
     cd $CATALINA_HOME/webapps/fedoragsearch/FgsConfig && \
-    ## @TODO: ENV ALL OF THIS vvv
     ant -f fgsconfig-basic.xml -Dlocal.FEDORA_HOME=$FEDORA_HOME -DgsearchUser=fgsAdmin -DgsearchPass=ild_fgs_admin_2018 -DfinalConfigPath=$CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes -DlogFilePath=$FEDORA_HOME/logs -DfedoraUser=fedoraAdmin -DfedoraPass=ild_fed_admin_2018 -DobjectStoreBase=$FEDORA_HOME/data/objectStore -DindexDir=NOT_USED -DindexingDocXslt=foxmlToSolr -DlogLevel=DEBUG -propertyfile fgsconfig-basic-for-islandora.properties && \
-    ## END @TODO ^^^
     cp -vr /tmp/basic-solr-config/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
     cp -v /tmp/basic-solr-config/foxmlToSolr.xslt $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt && \
     cp -v /tmp/basic-solr-config/index.properties $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties && \
@@ -126,7 +124,10 @@ RUN cd /tmp && \
 
 COPY rootfs /
 
-VOLUME /usr/local/fedora/data
+## Volume Fedora Data
+VOLUME /usr/local/fedora/data/activemq-data /usr/local/fedora/data/datastreamStore \
+    /usr/local/fedora/data/fedora-xacml-policies /usr/local/fedora/data/objectStore \
+    /usr/local/fedora/data/resourceIndex
 
 EXPOSE 8080
 
