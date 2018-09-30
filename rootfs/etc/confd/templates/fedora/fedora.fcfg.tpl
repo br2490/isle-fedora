@@ -878,7 +878,7 @@ https://wiki.duraspace.org/display/FEDORA36/Spring+Security
     <param name="modelName" value="ri">
       <comment>The name of the model to use.</comment>
     </param>
-    <param name="bufferSafeCapacity" value="40000">
+    <param name="bufferSafeCapacity" value="80000">
       <comment>The maximum size the buffer can reach before being forcibly 
 			flushed. If this threshold is reached, flushing will occur in the 
 			foreground and the buffer will be locked for writing until it is 
@@ -892,12 +892,12 @@ https://wiki.duraspace.org/display/FEDORA36/Spring+Security
       <comment>The name of the Trippi Connector class used to communicate 
 			with the triplestore.</comment>
     </param>
-    <param name="bufferFlushBatchSize" value="20000">
+    <param name="bufferFlushBatchSize" value="40000">
       <comment>The number of updates to send to the triplestore at a time. 
 			This should be the same size as, or smaller than 
 			autoFlushBufferSize.</comment>
     </param>
-    <param name="autoFlushBufferSize" value="20000">
+    <param name="autoFlushBufferSize" value="40000">
       <comment>The size at which the buffer should be auto-flushed. If 
 			this threshold is reached, flushing will occur in the background, 
 			during which time the buffer is still available for 
@@ -949,7 +949,7 @@ https://wiki.duraspace.org/display/FEDORA36/Spring+Security
   <datastore id="apimUpdateMessages">
     <comment>Messaging Destination for API-M events which update the repository</comment>
     <param name="name" value="fedora.apim.update"/>
-    <param name="type" value="topic">
+    <param name="type" value="queue">
       <comment>Optional, defaults to topic.</comment>
     </param>
     <param name="messageTypes" value="apimUpdate">

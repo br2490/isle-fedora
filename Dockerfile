@@ -97,18 +97,20 @@ RUN mkdir /tmp/fedoragsearch && \
 RUN cd /tmp && \
     git clone --recursive -b 4.10.x https://github.com/discoverygarden/basic-solr-config.git && \
     cd basic-solr-config && \
-    export DGI_SOLR_CONFIG_COMMIT=`git rev-parse --short HEAD` && \
+    # export SOLR_CONFIG_COMMIT=`git rev-parse --short HEAD` && \  ## Doesn't work. Would be nice to have this hash...
     sed -i "s#localhost:8080#solr:8080#g" index.properties&& \
     sed -i "s#/usr/local/fedora/solr/collection1/data/index#NOT_USED#g" index.properties&& \
     sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' foxmlToSolr.xslt && \
     sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' islandora_transforms/*.xslt && \
     cd $CATALINA_HOME/webapps/fedoragsearch/FgsConfig && \
     ant -f fgsconfig-basic.xml -Dlocal.FEDORA_HOME=$FEDORA_HOME -DgsearchUser=fgsAdmin -DgsearchPass=ild_fgs_admin_2018 -DfinalConfigPath=$CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes -DlogFilePath=$FEDORA_HOME/logs -DfedoraUser=fedoraAdmin -DfedoraPass=ild_fed_admin_2018 -DobjectStoreBase=$FEDORA_HOME/data/objectStore -DindexDir=NOT_USED -DindexingDocXslt=foxmlToSolr -DlogLevel=DEBUG -propertyfile fgsconfig-basic-for-islandora.properties && \
+    sed -i "s#FgsUpdaters#FgsUpdater0  FgsUpdater1  FgsUpdater2  FgsUpdater3  FgsUpdater4  FgsUpdater5  FgsUpdater6  FgsUpdater7#g" $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/fedoragsearch.properties && \
     cp -vr /tmp/basic-solr-config/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
     cp -v /tmp/basic-solr-config/foxmlToSolr.xslt $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt && \
     cp -v /tmp/basic-solr-config/index.properties $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties && \
+    ln -s /utility_scripts/updateSolrIndex.sh /usr/local/bin/updateSolrIndex && \
     ## Cleanup phase.
-    rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo* $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/demo*
+    rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo* $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/configDemo*
 
 ## Labels
 ARG BUILD_DATE

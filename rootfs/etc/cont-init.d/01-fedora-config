@@ -1,8 +1,8 @@
 #!/usr/bin/with-contenv sh
 
 ## Wait for SQL.
-while ! mysqladmin ping -hmysql --silent; do
-    sleep 1
-done
+# while ! mysqladmin ping -hmysql --silent; do
+#     sleep 1
+# done
 
 /usr/local/bin/confd -onetime -backend env

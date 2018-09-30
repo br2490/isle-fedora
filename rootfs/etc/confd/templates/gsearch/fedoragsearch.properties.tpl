@@ -57,7 +57,7 @@ fedoragsearch.indexNames									= FgsIndex
 # property is removed updates through notifications are disabled.
 #
 #fedoragsearch.updaterNames								= MyUpdaters1 MyUpdatersN configured in config/updater/MyUpdaters
-fedoragsearch.updaterNames									= FgsUpdaters
+fedoragsearch.updaterNames									= FgsUpdater0  FgsUpdater1  FgsUpdater2  FgsUpdater3  FgsUpdater4  FgsUpdater5  FgsUpdater6  FgsUpdater7
 
 #fedoragsearch.searchResultFilteringModule implements search result filtering, if present
 #fedoragsearch.searchResultFilteringModule				= dk.defxws.fedoragsearch.server.SearchResultFilteringDemoImpl
