@@ -1,21 +1,4 @@
-FROM benjaminrosner/isle-tomcat:serverjre8
-
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-ARG MAVEN_MAJOR
-ARG MAVEN_VERSION
-ARG ANT_VERSION
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="ISLE Fedora Services" \
-      org.label-schema.description="ISLE Fedora image, responsible for storing and serving archival repository data." \
-      org.label-schema.url="https://islandora-collaboration-group.github.io" \
-      org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/Islandora-Collaboration-Group/isle-fedora" \
-      org.label-schema.vendor="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
-      org.label-schema.version=$VERSION \
-      org.label-schema.schema-version="1.0" \
-      traefik.port="8080"
+FROM islandoracollabgroup/isle-tomcat:serverjre8
 
 ## Dependencies 
 RUN GEN_DEP_PACKS="mysql-client \
@@ -33,28 +16,12 @@ RUN GEN_DEP_PACKS="mysql-client \
 ## Set up environmental variables for tomcat & dependencies installation
 ENV JAVA_MAX_MEM=${JAVA_MAX_MEM:-2G} \
     JAVA_MIN_MEM=${JAVA_MIN_MEM:-512M} \
-    ## Per Gavin, we are no longer using -XX:+UseConcMarkSweepGC, instead G1GC.
     JAVA_OPTS='-Djava.awt.headless=true -server -Xmx${JAVA_MAX_MEM} -Xms${JAVA_MIN_MEM} -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=70 -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true' \
     FEDORA_HOME=/usr/local/fedora \
     FEDORA_PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin \
     PATH=$PATH:/usr/local/fedora/server/bin:/usr/local/fedora/client/bin:/opt/maven/bin:/opt/ant/bin \
     MAVEN_HOME=/opt/maven \
-    ANT_HOME=/opt/ant \
-    MAVEN_MAJOR=${MAVEN_MAJOR:-3} \
-    MAVEN_VERSION=${MAVEN_VERSION:-3.5.4} \
-    ANT_VERSION=${ANT_VERSION:-1.10.5}
-
-## ANT AND MAVEN
-RUN mkdir -p $ANT_HOME $MAVEN_HOME && \
-    cd /tmp && \
-    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=maven/maven-$MAVEN_MAJOR/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" && \
-    tar xzf /tmp/apache-maven-$MAVEN_VERSION-bin.tar.gz -C $MAVEN_HOME --strip-components=1 && \
-    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=ant/binaries/apache-ant-$ANT_VERSION-bin.tar.gz" && \
-    tar xzf /tmp/apache-ant-$ANT_VERSION-bin.tar.gz -C $ANT_HOME --strip-components=1 && \
-    cd $ANT_HOME && \
-    ant -f fetch.xml -Ddest=system && \
-    ## Cleanup phase.
-    rm -rf /tmp/* /var/tmp/* $ANT_HOME/bin/*.bat 
+    ANT_HOME=/opt/ant
 
 ## Copy installation configuration files.
 COPY install_properties/ /
@@ -87,6 +54,25 @@ RUN mkdir -p $FEDORA_HOME /tmp/fedora &&\
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/*
 
+## ANT AND MAVEN
+ARG MAVEN_MAJOR
+ARG MAVEN_VERSION
+ARG ANT_VERSION
+ENV MAVEN_MAJOR=${MAVEN_MAJOR:-3} \
+    MAVEN_VERSION=${MAVEN_VERSION:-3.5.4} \
+    ANT_VERSION=${ANT_VERSION:-1.10.5}
+
+RUN mkdir -p $ANT_HOME $MAVEN_HOME && \
+    cd /tmp && \
+    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=maven/maven-$MAVEN_MAJOR/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" && \
+    tar xzf /tmp/apache-maven-$MAVEN_VERSION-bin.tar.gz -C $MAVEN_HOME --strip-components=1 && \
+    curl -O -L "https://www.apache.org/dyn/closer.cgi?action=download&filename=ant/binaries/apache-ant-$ANT_VERSION-bin.tar.gz" && \
+    tar xzf /tmp/apache-ant-$ANT_VERSION-bin.tar.gz -C $ANT_HOME --strip-components=1 && \
+    cd $ANT_HOME && \
+    ant -f fetch.xml -Ddest=system && \
+    ## Cleanup phase.
+    rm -rf /tmp/* /var/tmp/* $ANT_HOME/bin/*.bat 
+
 ###
 # Fedora GSearch
 # DGI GSearch extensions
@@ -110,17 +96,34 @@ RUN mkdir /tmp/fedoragsearch && \
     ## Configuration time. Why in another layer? caching during development.
 RUN cd /tmp && \
     git clone --recursive -b 4.10.x https://github.com/discoverygarden/basic-solr-config.git && \
-    sed -i "s#localhost:8080#solr:8080#g" /tmp/basic-solr-config/index.properties&& \
-    sed -i "s#/usr/local/fedora/solr/collection1/data/index#NOT_USED#g" /tmp/basic-solr-config/index.properties&& \
-    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/foxmlToSolr.xslt && \
-    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' /tmp/basic-solr-config/islandora_transforms/*.xslt && \
+    cd basic-solr-config && \
+    export DGI_SOLR_CONFIG_COMMIT=`git rev-parse --short HEAD` && \
+    sed -i "s#localhost:8080#solr:8080#g" index.properties&& \
+    sed -i "s#/usr/local/fedora/solr/collection1/data/index#NOT_USED#g" index.properties&& \
+    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' foxmlToSolr.xslt && \
+    sed -i 's#/usr/local/fedora/tomcat#/usr/local/tomcat#g' islandora_transforms/*.xslt && \
     cd $CATALINA_HOME/webapps/fedoragsearch/FgsConfig && \
     ant -f fgsconfig-basic.xml -Dlocal.FEDORA_HOME=$FEDORA_HOME -DgsearchUser=fgsAdmin -DgsearchPass=ild_fgs_admin_2018 -DfinalConfigPath=$CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes -DlogFilePath=$FEDORA_HOME/logs -DfedoraUser=fedoraAdmin -DfedoraPass=ild_fed_admin_2018 -DobjectStoreBase=$FEDORA_HOME/data/objectStore -DindexDir=NOT_USED -DindexingDocXslt=foxmlToSolr -DlogLevel=DEBUG -propertyfile fgsconfig-basic-for-islandora.properties && \
     cp -vr /tmp/basic-solr-config/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
     cp -v /tmp/basic-solr-config/foxmlToSolr.xslt $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt && \
     cp -v /tmp/basic-solr-config/index.properties $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties && \
     ## Cleanup phase.
-    rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo*
+    rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo* $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/demo*
+
+## Labels
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="ISLE Fedora Services" \
+      org.label-schema.description="ISLE Fedora image, responsible for storing and serving archival repository data." \
+      org.label-schema.url="https://islandora-collaboration-group.github.io" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/Islandora-Collaboration-Group/isle-fedora" \
+      org.label-schema.vendor="Islandora Collaboration Group (ICG) - islandora-consortium-group@googlegroups.com" \
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0" \
+      traefik.port="8080"
 
 COPY rootfs /
 
