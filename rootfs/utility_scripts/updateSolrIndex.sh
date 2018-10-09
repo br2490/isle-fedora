@@ -16,4 +16,3 @@ if [ `eval $RUNNING` -gt 1 ]; then
 else
     echo 'FAILURE: Operation did not start or is not running as expected. Please contact the Islandora ISLE Google Group @ https://groups.google.com/forum/#!forum/islandora-isle'
 fi
-
