@@ -108,6 +108,8 @@ RUN cd /tmp && \
     cp -vr /tmp/basic-solr-config/islandora_transforms $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/islandora_transforms && \
     cp -v /tmp/basic-solr-config/foxmlToSolr.xslt $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/foxmlToSolr.xslt && \
     cp -v /tmp/basic-solr-config/index.properties $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/index.properties && \
+    ## Link helper scripts.
+    ln -s /utility_scripts/rebuildFedora.sh /usr/local/bin/rebuildFedora && \
     ln -s /utility_scripts/updateSolrIndex.sh /usr/local/bin/updateSolrIndex && \
     ## Cleanup phase.
     rm -rf /tmp/* /var/tmp/* $CATALINA_HOME/webapps/fedora-demo* $CATALINA_HOME/webapps/fedoragsearch/WEB-INF/classes/configDemo*
